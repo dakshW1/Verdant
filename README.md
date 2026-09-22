@@ -1,6 +1,6 @@
  # 🌿 Verdant — Carbon & Latency-Aware Agent Workflow Scheduler
 
-      Verdant takes a multi-step AI agent workflow (a DAG of LLM calls — plan → retrieve → summarize → reason → verify → format) and automatically decides, for **every step**: which model tier to use, which site/region to run it in, when to start it, and whether to try a cheap model first before escalating. It then executes the plan with **real Gemini API calls**, verifies output quality live, and produces a Carbon Receipt comparing the result against a naive "just use the biggest model for everything" baseline.
+     -> Verdant takes a multi-step AI agent workflow (a DAG of LLM calls — plan → retrieve → summarize → reason → verify → format) and automatically decides, for **every step**: which model tier to use, which site/region to run it in, when to start it, and whether to try a cheap model first before escalating. It then executes the plan with **real Gemini API calls**, verifies output quality live, and produces a Carbon Receipt comparing the result against a naive "just use the biggest model for everything" baseline.
 
 ## 🚀 Quickstart 
 
