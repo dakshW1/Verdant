@@ -100,11 +100,46 @@ async def plan(
             workflow, constraints, effective_weights, start_ts
         )
 
-    solve_ms = round((_time.monotonic() - t0) * 1000)
+    # Compute baselines — MUST use the same DAG-aware scheduling and real
+    # carbon-intensity forecast as the solver above, or "naive" isn't a fair
+    # yardstick (see app/receipt/baselines.py docstring).
+    from app.receipt.baselines import build_fixed_model_plan, compute_baselines, find_default_site, find_tier_model
+    baselines = await compute_baselines(workflow, start_ts)
 
-    # Compute baselines
-    from app.receipt.baselines import compute_baselines
-    baselines = compute_baselines(workflow)
+    # ── Hard invariant: never return a plan with higher expected carbon than
+    # naive, unless naive itself is infeasible (misses the deadline or the
+    # quality floor). Naive is always a config the planner could have chosen,
+    # so if the "optimized" result is dirtier, fall back to naive outright
+    # rather than let a weighted objective (e.g. a fast/cheap preset) quietly
+    # accept a dirtier plan. See tests/test_carbon_invariant.py.
+    relaxations: list[dict] = []
+    naive_totals = baselines["naive"]
+    naive_feasible = (
+        naive_totals.makespan_s <= constraints.deadline_s
+        and naive_totals.quality >= constraints.quality_floor
+    )
+    if naive_feasible and totals.carbon_g > naive_totals.carbon_g + 1e-9:
+        rejected_carbon_g = totals.carbon_g
+        logger.warning(
+            "Plan %s: %s-solver carbon (%.4fg) exceeded the naive baseline (%.4fg) — "
+            "falling back to the naive configuration to preserve the no-worse-than-naive invariant.",
+            workflow.id, actual_solver, rejected_carbon_g, naive_totals.carbon_g,
+        )
+        large_model = find_tier_model("L")
+        default_site = find_default_site()
+        step_plans, totals = await build_fixed_model_plan(
+            workflow, large_model, default_site, start_ts, deadline_s=constraints.deadline_s,
+        )
+        relaxations.append({
+            "constraint": "carbon_invariant",
+            "note": (
+                f"The weighted objective would have picked a plan using more carbon "
+                f"({rejected_carbon_g}g) than always using the largest model "
+                f"({naive_totals.carbon_g}g), so Verdant used the naive configuration instead."
+            ),
+        })
+
+    solve_ms = round((_time.monotonic() - t0) * 1000)
 
     # Determine plan status
     if totals.makespan_s <= constraints.deadline_s:
@@ -120,7 +155,7 @@ async def plan(
         steps=step_plans,
         totals=totals,
         baselines=baselines,
-        relaxations=[],
+        relaxations=relaxations,
         pareto=[],
         solver=actual_solver,  # type: ignore
         solve_ms=solve_ms,

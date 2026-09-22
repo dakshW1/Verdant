@@ -240,26 +240,26 @@ class TestGreedyScheduler:
 # ─── Baselines ────────────────────────────────────────────────────────────────
 
 class TestBaselines:
-    def test_baselines_keys(self):
+    async def test_baselines_keys(self):
         wf = _linear_workflow(2)
-        baselines = compute_baselines(wf)
+        baselines = await compute_baselines(wf, start_ts=int(time.time()))
         assert set(baselines.keys()) == {"naive", "fastest", "smallest"}
 
-    def test_naive_has_highest_cost(self):
+    async def test_naive_has_highest_cost(self):
         """Naive uses largest model → highest cost."""
         wf = _linear_workflow(2)
-        baselines = compute_baselines(wf)
+        baselines = await compute_baselines(wf, start_ts=int(time.time()))
         assert baselines["naive"].cost_usd >= baselines["smallest"].cost_usd
 
-    def test_naive_has_highest_quality(self):
+    async def test_naive_has_highest_quality(self):
         """Naive uses largest model → highest quality."""
         wf = _linear_workflow(2)
-        baselines = compute_baselines(wf)
+        baselines = await compute_baselines(wf, start_ts=int(time.time()))
         assert baselines["naive"].quality >= baselines["smallest"].quality
 
-    def test_all_baselines_positive_makespan(self):
+    async def test_all_baselines_positive_makespan(self):
         wf = _linear_workflow(3)
-        baselines = compute_baselines(wf)
+        baselines = await compute_baselines(wf, start_ts=int(time.time()))
         for name, b in baselines.items():
             assert b.makespan_s > 0, f"Baseline {name} has zero makespan"
             assert b.energy_wh > 0, f"Baseline {name} has zero energy"
