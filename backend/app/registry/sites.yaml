@@ -1,0 +1,100 @@
+# Verdant site registry
+# Sites are accounting abstractions over real LLM API calls.
+# Execution sites cannot currently be selected on the Gemini API — these represent
+# the grid carbon intensity, PUE, and RTT characteristics of GCP regions as documented.
+# If real regional endpoints (e.g. Vertex AI regions) are added, they plug into the same Site interface.
+# PUE values: GCP 2024 average PUE ~1.10 for most cloud regions.
+# Grid zones: correspond to Electricity Maps zone codes.
+# source: cloud.google.com/sustainability/region-carbon, electricitymaps.com
+
+sites:
+  - id: local
+    label: "On-device (Bangalore)"
+    zone: IN-SO
+    pue: 1.0           # device: no datacenter overhead
+    rtt_s: 0.0
+    models: [local-3b]
+    device: true
+    note: "Local inference — no network RTT, no PUE overhead. Grid intensity from IN-SO zone."
+
+  - id: gcp-mumbai
+    label: "Cloud – Mumbai (asia-south1)"
+    zone: IN-WE
+    pue: 1.10          # estimate: GCP 2024 average; source: cloud.google.com/sustainability
+    rtt_s: 0.05        # estimated RTT from Bangalore; source: cloudping.info
+    models: [small, medium, large]
+    device: false
+    note: "GCP asia-south1. PUE and RTT are estimates."
+
+  - id: gcp-delhi
+    label: "Cloud – Delhi (asia-south2)"
+    zone: IN-NO
+    pue: 1.10
+    rtt_s: 0.06
+    models: [small, medium, large]
+    device: false
+    note: "GCP asia-south2. PUE and RTT are estimates."
+
+  - id: gcp-singapore
+    label: "Cloud – Singapore (asia-southeast1)"
+    zone: SG
+    pue: 1.10
+    rtt_s: 0.09
+    models: [small, medium, large]
+    device: false
+    note: "GCP asia-southeast1. RTT estimate from India."
+
+  - id: gcp-finland
+    label: "Cloud – Finland (europe-north1)"
+    zone: FI
+    pue: 1.10
+    rtt_s: 0.20
+    models: [small, medium, large]
+    device: false
+    note: "GCP europe-north1. Low-carbon grid (high wind + nuclear). RTT ~200 ms from India."
+
+# Synthetic CI model parameters (illustrative; replaced by live/snapshot data when available).
+# CI(t) = base * (1 - solar_dip*solar(h) - wind_night_dip*night(h)) + AR(1) noise
+# sigma(t) = sigma0 + kappa_per_h * hours_ahead
+# source: illustrative model calibrated to Electricity Maps historical averages for these zones
+synthetic_ci:
+  IN-SO:
+    base: 600
+    solar_dip: 0.35
+    wind_night_dip: 0.10
+    sigma0: 15
+    kappa_per_h: 4
+    utc_offset_h: 5.5
+    note: "Southern India grid — high solar potential. Base ~600 gCO2e/kWh (illustrative)."
+  IN-WE:
+    base: 750
+    solar_dip: 0.30
+    wind_night_dip: 0.05
+    sigma0: 20
+    kappa_per_h: 5
+    utc_offset_h: 5.5
+    note: "Western India grid — coal-heavy. Base ~750 gCO2e/kWh (illustrative)."
+  IN-NO:
+    base: 700
+    solar_dip: 0.25
+    wind_night_dip: 0.03
+    sigma0: 20
+    kappa_per_h: 5
+    utc_offset_h: 5.5
+    note: "Northern India grid. Base ~700 gCO2e/kWh (illustrative)."
+  SG:
+    base: 470
+    solar_dip: 0.05
+    wind_night_dip: 0.00
+    sigma0: 10
+    kappa_per_h: 2
+    utc_offset_h: 8
+    note: "Singapore — natural-gas dominated. Low diurnal variation. Base ~470 gCO2e/kWh (illustrative)."
+  FI:
+    base: 120
+    solar_dip: 0.05
+    wind_night_dip: 0.30
+    sigma0: 25
+    kappa_per_h: 6
+    utc_offset_h: 2
+    note: "Finland — wind + nuclear. Low base, high wind at night. Base ~120 gCO2e/kWh (illustrative)."

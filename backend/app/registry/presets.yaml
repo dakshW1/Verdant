@@ -1,0 +1,41 @@
+# Weight presets for the objective function (Section 7.8).
+# Keys: L=latency, C=cost, E=energy, G=carbon, Q=quality.
+# All weights normalized to sum=1 by the planner.
+presets:
+  green:
+    latency: 0.10
+    cost: 0.05
+    energy: 0.15
+    carbon: 0.55
+    quality: 0.15
+    label: "🌿 Green"
+    description: "Minimize carbon above all else; accept latency and cost increases."
+
+  fast:
+    latency: 0.55
+    cost: 0.10
+    energy: 0.05
+    carbon: 0.10
+    quality: 0.20
+    label: "⚡ Fast"
+    description: "Minimize latency; good for time-critical workflows."
+
+  balanced:
+    latency: 0.20
+    cost: 0.10
+    energy: 0.10
+    carbon: 0.40
+    quality: 0.20
+    label: "⚖️ Balanced"
+    description: "Default. Strong carbon weight with reasonable latency and quality."
+
+  cheap:
+    latency: 0.10
+    cost: 0.50
+    energy: 0.10
+    carbon: 0.10
+    quality: 0.20
+    label: "💰 Cheap"
+    description: "Minimize API cost; useful for batch jobs."
+
+default_preset: balanced

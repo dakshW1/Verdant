@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+@theme {
+  /* Verdant Design System */
+  --color-emerald-950: #022c22;
+  --color-emerald-900: #064e3b;
+
+  --font-sans: 'Inter', 'Outfit', system-ui, sans-serif;
+
+  /* Custom green accent */
+  --color-brand: #10b981;
+  --color-brand-dim: #059669;
+  --color-brand-glow: #34d399;
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html, body {
+    height: 100%;
+    font-family: var(--font-sans);
+    background: #020d07;
+    color: #e2e8f0;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  #root {
+    height: 100%;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track { background: #0a1a10; }
+  ::-webkit-scrollbar-thumb { background: #1e4d31; border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #10b981; }
+}

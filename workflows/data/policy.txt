@@ -1,0 +1,15 @@
+The Indian government's EV policy framework for two-wheelers has evolved significantly, creating both opportunities and uncertainty for market participants.
+
+**FAME II (2019–2024)**: The Faster Adoption and Manufacturing of Electric Vehicles scheme allocated INR 10,000 crore for EV incentives. For E2Ws, it provided demand-side subsidies tied to localization requirements. By March 2024, FAME II disbursed approximately INR 4,900 crore for E2Ws, supporting ~1.1 million vehicles. Compliance audits in 2023 revealed localization violations by several OEMs; Hero Electric, Okinawa, and Benling India faced subsidy clawbacks totaling INR 469 crore.
+
+**PM E-DRIVE (2024 onwards)**: Successor scheme announced with INR 10,900 crore outlay over two years. Focus shifted toward demand aggregation for e-buses and two-wheelers in government fleets, and public charging infrastructure. E2W subsidy structure reformed: INR 5,000 per vehicle for private buyers meeting 50% domestic value addition threshold.
+
+**State-level incentives**: 22 states operate independent EV policies. Maharashtra offers road tax waiver + INR 10,000 subsidy. Karnataka: GST compensation + INR 5,000. Delhi: INR 5,000 subsidy on first 1,000 units purchased monthly per model. Rajasthan: 15% subsidy on ex-factory price (capped at INR 20,000). These stack with central incentives in most cases.
+
+**Regulatory challenges**: Battery safety standards (AIS-156 and AIS-038 Rev 2) implemented post the 2022 fire incidents. Minimum energy density requirements (90 Wh/kg) impacted some low-cost OEMs. Battery recycling regulations under E-Waste Management Rules 2022 require OEMs to establish collection infrastructure.
+
+**PLI scheme**: Production Linked Incentive for ACC (Advanced Chemistry Cell) battery manufacturing allocated INR 18,100 crore for 50 GWh domestic capacity. Ola, Reliance New Energy, and Rajesh Exports among awardees. Expected to reduce cell import dependency by 2026.
+
+**Import duties**: 100% basic customs duty on imported EV components discourages foreign OEM entry; Tesla-style reduced duty (15%) framework being debated but not yet extended to E2Ws.
+
+**EV charging norms**: Bureau of Energy Efficiency mandated public charger availability at fuel stations (20% of pumps by 2025). Right-to-charge notification issued; apartment RWAs cannot prohibit resident EV charging.

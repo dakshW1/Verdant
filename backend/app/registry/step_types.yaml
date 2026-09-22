@@ -1,0 +1,68 @@
+# Step type priors — used before telemetry is available.
+# q[tier] = prior quality estimate for that model tier on this step type.
+# p_accept_S = P(small-model output accepted by verifier) — prior for cascade decisions.
+# tok_in / tok_out = typical token counts for this step type (before upstream outputs are available).
+# All values are estimates calibrated from internal testing; actual values updated by calibrate.py.
+
+step_types:
+  planning:
+    tok_in: 400
+    tok_out: 250
+    q: {S: 0.80, M: 0.90, L: 0.95}
+    p_accept_S: 0.70
+    note: "Planning tasks: medium complexity; small model acceptable for simple workflows."
+
+  extraction:
+    tok_in: 1500
+    tok_out: 300
+    q: {S: 0.88, M: 0.93, L: 0.95}
+    p_accept_S: 0.85
+    note: "Extraction from context: mostly lookup; small models competitive."
+
+  summarization:
+    tok_in: 1200
+    tok_out: 300
+    q: {S: 0.86, M: 0.92, L: 0.95}
+    p_accept_S: 0.80
+    note: "Summarization: compression task; small models decent."
+
+  reasoning:
+    tok_in: 1500
+    tok_out: 700
+    q: {S: 0.65, M: 0.85, L: 0.95}
+    p_accept_S: 0.35
+    note: "Reasoning: hardest task type; small models fail often — cascade strongly preferred."
+
+  verification:
+    tok_in: 1500
+    tok_out: 200
+    q: {S: 0.75, M: 0.88, L: 0.95}
+    p_accept_S: 0.55
+    note: "Verification: moderate; small model acceptable as cheap verifier."
+
+  formatting:
+    tok_in: 800
+    tok_out: 500
+    q: {S: 0.95, M: 0.97, L: 0.98}
+    p_accept_S: 0.95
+    note: "Formatting: mechanical; small model nearly always sufficient."
+
+  code:
+    tok_in: 1000
+    tok_out: 600
+    q: {S: 0.60, M: 0.82, L: 0.94}
+    p_accept_S: 0.30
+    note: "Code generation: high failure rate for small models; prefer cascade or large."
+
+# Prior strength: pseudo-count for Beta priors (higher = slower to update from telemetry).
+prior_strength: 10
+
+# Worst-case latency multiplier (applied to expected duration for deadline safety checks).
+# Better: use mu + 1.28*sigma from telemetry once enough data exists.
+wc_multiplier: 1.3
+
+# Verifier threshold: score >= tau is "accepted"
+verifier_tau: 0.7
+
+# Cascade rho: precision of accepted small outputs (fraction judged equal/better than teacher)
+cascade_rho: 0.93

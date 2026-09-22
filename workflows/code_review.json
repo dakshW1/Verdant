@@ -1,0 +1,85 @@
+{
+  "id": "code_review",
+  "name": "Parallel code review",
+  "inputs": {
+    "pr_title": "Add rate limiting middleware",
+    "diff": "--- a/app/main.py\n+++ b/app/main.py\n@@ -1,5 +1,20 @@\n+from slowapi import Limiter\n+limiter = Limiter(key_func=get_remote_address)\n+app.state.limiter = limiter\n"
+  },
+  "steps": [
+    {
+      "id": "parse",
+      "name": "Parse diff",
+      "step_type": "extraction",
+      "omega": 0.10,
+      "prompt_template": "Parse this code diff and identify the files changed, added functions, and modification types. Return JSON.\n\nPR: {{input.pr_title}}\n\nDiff:\n{{input.diff}}",
+      "depends_on": [],
+      "max_tokens_out": 400,
+      "cascade_allowed": false,
+      "verifier": "schema",
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "files": {"type": "array"},
+          "additions": {"type": "integer"},
+          "deletions": {"type": "integer"}
+        }
+      }
+    },
+    {
+      "id": "review_security",
+      "name": "Security review",
+      "step_type": "code",
+      "omega": 0.30,
+      "min_quality": 0.80,
+      "prompt_template": "Review the following code change for security issues (injection, auth, secrets, rate limits, input validation). Be specific.\n\nContext: {{upstream.parse}}\n\nDiff:\n{{input.diff}}",
+      "depends_on": ["parse"],
+      "max_tokens_out": 600,
+      "cascade_allowed": true,
+      "verifier": "llm_judge"
+    },
+    {
+      "id": "review_logic",
+      "name": "Logic review",
+      "step_type": "code",
+      "omega": 0.30,
+      "prompt_template": "Review the following code change for logic errors, edge cases, and correctness. Reference the parsed structure.\n\nContext: {{upstream.parse}}\n\nDiff:\n{{input.diff}}",
+      "depends_on": ["parse"],
+      "max_tokens_out": 600,
+      "cascade_allowed": true,
+      "verifier": "llm_judge"
+    },
+    {
+      "id": "review_style",
+      "name": "Style review",
+      "step_type": "code",
+      "omega": 0.10,
+      "prompt_template": "Review the following code change for style, naming conventions, and documentation. Be concise.\n\nDiff:\n{{input.diff}}",
+      "depends_on": ["parse"],
+      "max_tokens_out": 400,
+      "cascade_allowed": true,
+      "verifier": "llm_judge"
+    },
+    {
+      "id": "merge",
+      "name": "Merge review comments",
+      "step_type": "reasoning",
+      "omega": 0.10,
+      "prompt_template": "Merge and deduplicate these code review comments into a structured final review:\n\nSecurity: {{upstream.review_security}}\nLogic: {{upstream.review_logic}}\nStyle: {{upstream.review_style}}",
+      "depends_on": ["review_security", "review_logic", "review_style"],
+      "max_tokens_out": 700,
+      "cascade_allowed": false,
+      "verifier": "llm_judge"
+    },
+    {
+      "id": "rank",
+      "name": "Severity ranking",
+      "step_type": "formatting",
+      "omega": 0.10,
+      "prompt_template": "Format the following review as a structured report with CRITICAL / MAJOR / MINOR / SUGGESTION severity labels:\n\n{{upstream.merge}}",
+      "depends_on": ["merge"],
+      "max_tokens_out": 600,
+      "cascade_allowed": true,
+      "verifier": "llm_judge"
+    }
+  ]
+}

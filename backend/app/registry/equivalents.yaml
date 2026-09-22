@@ -1,0 +1,27 @@
+# Carbon equivalents for the receipt display.
+# ALL values are ROUGH EQUIVALENTS and are labeled as such in the UI.
+# source: OurWorldInData, EPA GHG equivalencies calculator, Carbon Trust
+equivalents:
+  - key: km_driven
+    label: "km driven (avg petrol car)"
+    g_per_unit: 120.0    # ~120 gCO2e per km (EU average petrol car)
+    source: "European Environment Agency, 2023"
+    note: "rough equivalent"
+
+  - key: phone_charges
+    label: "smartphone charges"
+    g_per_unit: 8.0      # ~8 gCO2e per full charge (0.01 kWh × 800 gCO2e/kWh avg)
+    source: "Carbon Trust estimate"
+    note: "rough equivalent — varies by grid and phone model"
+
+  - key: google_searches
+    label: "Google searches"
+    g_per_unit: 0.2      # ~0.2 g per search (Google 2023 estimate)
+    source: "Google Environmental Report 2023"
+    note: "rough equivalent"
+
+  - key: hours_led_bulb
+    label: "hours of LED bulb (10W)"
+    g_per_unit: 3.5      # 10W × 350 gCO2e/kWh avg / 1000 = 3.5 g/h
+    source: "IEA average grid intensity, 2023"
+    note: "rough equivalent"

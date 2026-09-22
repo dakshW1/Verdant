@@ -1,0 +1,77 @@
+{
+  "id": "nightly_report",
+  "name": "Nightly market report (deferred)",
+  "inputs": {
+    "topic": "Electric two-wheelers in India",
+    "report_date": "2025-01-15"
+  },
+  "steps": [
+    {
+      "id": "plan",
+      "name": "Plan report",
+      "step_type": "planning",
+      "omega": 0.10,
+      "prompt_template": "Plan a nightly market report on {{input.topic}} for {{input.report_date}}. Return JSON list of 3 sections.",
+      "depends_on": [],
+      "max_tokens_out": 400,
+      "cascade_allowed": true,
+      "verifier": "llm_judge"
+    },
+    {
+      "id": "r1",
+      "name": "Gather news",
+      "step_type": "extraction",
+      "omega": 0.15,
+      "prompt_template": "Extract key news items about {{input.topic}} from the corpus relevant to: {{upstream.plan}}\n\n<corpus>{{corpus.market}}</corpus>",
+      "depends_on": ["plan"],
+      "max_tokens_out": 600,
+      "cascade_allowed": true,
+      "verifier": "llm_judge"
+    },
+    {
+      "id": "r2",
+      "name": "Gather financial data",
+      "step_type": "extraction",
+      "omega": 0.15,
+      "prompt_template": "Extract financial metrics about {{input.topic}} from the corpus:\n\n<corpus>{{corpus.competitors}}</corpus>",
+      "depends_on": ["plan"],
+      "max_tokens_out": 600,
+      "cascade_allowed": true,
+      "verifier": "llm_judge"
+    },
+    {
+      "id": "analyze",
+      "name": "Analyze trends",
+      "step_type": "reasoning",
+      "omega": 0.30,
+      "min_quality": 0.85,
+      "prompt_template": "Analyze the following data and identify 3 key trends with supporting evidence:\n\nNews: {{upstream.r1}}\n\nFinancials: {{upstream.r2}}",
+      "depends_on": ["r1", "r2"],
+      "max_tokens_out": 800,
+      "cascade_allowed": true,
+      "verifier": "llm_judge"
+    },
+    {
+      "id": "verify",
+      "name": "Verify analysis",
+      "step_type": "verification",
+      "omega": 0.10,
+      "prompt_template": "Verify the following analysis against the source data. Flag unsubstantiated claims.\n\nAnalysis: {{upstream.analyze}}\n\nNews: {{upstream.r1}}\nFinancials: {{upstream.r2}}",
+      "depends_on": ["analyze"],
+      "max_tokens_out": 400,
+      "cascade_allowed": false,
+      "verifier": "llm_judge"
+    },
+    {
+      "id": "fmt",
+      "name": "Format report",
+      "step_type": "formatting",
+      "omega": 0.20,
+      "prompt_template": "Format the analysis and verification notes as a polished nightly report in markdown with sections: Executive Summary, Key Trends, Flags.\n\nAnalysis: {{upstream.analyze}}\nVerification: {{upstream.verify}}",
+      "depends_on": ["verify"],
+      "max_tokens_out": 800,
+      "cascade_allowed": true,
+      "verifier": "llm_judge"
+    }
+  ]
+}

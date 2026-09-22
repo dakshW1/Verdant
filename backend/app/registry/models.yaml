@@ -1,0 +1,68 @@
+# Verdant model registry
+# IMPORTANT: energy_wh_per_tok values are ESTIMATES scaled from public per-prompt figures.
+# See: Google 2025 Environmental Report (Gemini median ~0.24 Wh/prompt),
+#      Luccioni et al. "Power Hungry Processing" (2023),
+#      ML.ENERGY leaderboard, Epoch AI per-query estimates.
+# The calibrate.py script overwrites latency fields with measured values → registry/calibrated.yaml
+
+models:
+  - id: small
+    provider: gemini
+    # gemini-3.5-flash-lite: S-tier, fastest & high free quota
+    api_id: "gemini-3.5-flash-lite"
+    tier: S
+    price_in_per_mtok_usd: 0.075   # source: ai.google.dev/gemini-api/docs/pricing
+    price_out_per_mtok_usd: 0.30
+    energy_wh_per_tok_in:  0.00002  # estimate; see sources above
+    energy_wh_per_tok_out: 0.00005
+    ttft_s: 0.4
+    tokens_per_s: 180
+    ctx: 1000000
+    note: "S tier — gemini-3.5-flash-lite. Energy per token = estimate from public per-prompt figures."
+    source: "ai.google.dev/gemini-api/docs/models + Google 2025 Environmental Report (energy)"
+
+  - id: medium
+    provider: gemini
+    # gemini-3.6-flash: M-tier, best speed/quality balance & fresh quota
+    api_id: "gemini-3.6-flash"
+    tier: M
+    price_in_per_mtok_usd: 0.15    # source: ai.google.dev/gemini-api/docs/pricing
+    price_out_per_mtok_usd: 0.60
+    energy_wh_per_tok_in:  0.00003
+    energy_wh_per_tok_out: 0.00015
+    ttft_s: 0.6
+    tokens_per_s: 120
+    ctx: 1000000
+    note: "M tier — gemini-3.6-flash. Energy per token = estimate."
+    source: "ai.google.dev/gemini-api/docs/models + Google 2025 Environmental Report (energy)"
+
+  - id: large
+    provider: gemini
+    # gemini-3.1-pro-preview: L-tier, highest capability
+    api_id: "gemini-3.1-pro-preview"
+    tier: L
+
+    price_in_per_mtok_usd: 1.25    # source: ai.google.dev/gemini-api/docs/pricing (≤128k ctx)
+    price_out_per_mtok_usd: 5.00
+    energy_wh_per_tok_in:  0.00008
+    energy_wh_per_tok_out: 0.0008
+    ttft_s: 1.5
+    tokens_per_s: 60
+    ctx: 2000000
+    note: "L tier — gemini-2.5-pro. Energy per token = estimate."
+    source: "ai.google.dev/gemini-api/docs/models + Google 2025 Environmental Report (energy)"
+
+  - id: local-3b
+    provider: ollama
+    # llama3.2:3b as the default local model (widely available via Ollama)
+    api_id: "llama3.2:3b"
+    tier: S
+    device_power_w: 35       # average draw during inference; ESTIMATE — measure if possible
+    prefill_tps: 400
+    tokens_per_s: 25
+    ttft_s: 0.3
+    price_in_per_mtok_usd: 0
+    price_out_per_mtok_usd: 0
+    ctx: 128000
+    note: "Local 3B model via Ollama. device_power_w is an estimate; measure with powerstat."
+    source: "llama.cpp benchmarks + anecdotal community reports"

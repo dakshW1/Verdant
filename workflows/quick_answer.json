@@ -1,0 +1,45 @@
+{
+  "id": "quick_answer",
+  "name": "Quick Answer (3-Step Green Chat)",
+  "inputs": {
+    "question": "What are the most effective strategies to decarbonize AI data centers by 2030?"
+  },
+  "steps": [
+    {
+      "id": "understand",
+      "name": "Understand Query",
+      "step_type": "planning",
+      "omega": 0.20,
+      "prompt_template": "Analyze the following user question. Extract key concepts, intended depth, and main points required:\n\nQuestion: {{input.question}}\n\nProvide a concise structural outline for answering.",
+      "depends_on": [],
+      "min_quality": 0.75,
+      "max_tokens_out": 300,
+      "cascade_allowed": true,
+      "verifier": "llm_judge"
+    },
+    {
+      "id": "answer",
+      "name": "Synthesize Answer",
+      "step_type": "reasoning",
+      "omega": 0.60,
+      "prompt_template": "Answer the user question comprehensively, accurately, and clearly using the following analysis:\n\nUser Question: {{input.question}}\n\nQuery Analysis: {{upstream.understand}}\n\nProvide a detailed, well-structured response with evidence and practical takeaways.",
+      "depends_on": ["understand"],
+      "min_quality": 0.85,
+      "max_tokens_out": 700,
+      "cascade_allowed": true,
+      "verifier": "llm_judge"
+    },
+    {
+      "id": "check",
+      "name": "Verify & Deliver",
+      "step_type": "verification",
+      "omega": 0.20,
+      "prompt_template": "Review the answer for factual accuracy, completeness, and clarity. Format the final verified deliverable clearly in markdown:\n\nQuestion: {{input.question}}\n\nDraft Answer: {{upstream.answer}}",
+      "depends_on": ["answer"],
+      "min_quality": 0.80,
+      "max_tokens_out": 800,
+      "cascade_allowed": false,
+      "verifier": "llm_judge"
+    }
+  ]
+}
