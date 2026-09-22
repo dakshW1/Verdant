@@ -386,6 +386,48 @@ class TestRunnerIntegration:
         assert all(sr.output_text.strip() for sr in summary.steps)
 
     @pytest.mark.asyncio
+    async def test_step_started_and_reasoning_events_stream_live(self, monkeypatch):
+        """
+        Section 3 feature: step_started must carry the plan-time rationale,
+        and a step_reasoning event must be emitted at the accept/escalate
+        decision point (not only bundled into step_completed after the fact).
+        """
+        from app.scheduler.planner import plan
+        from app.executor import runner as runner_module
+
+        captured: list = []
+        real_emit = runner_module.emit
+
+        def _tap(event):
+            captured.append(event)
+            return real_emit(event)
+
+        monkeypatch.setattr(runner_module, "emit", _tap)
+
+        wf = Workflow(id="reasoning_test", name="Reasoning Test", steps=[_make_step("A")])
+        constraints = Constraints(deadline_s=300, quality_floor=0.5)
+        plan_result = await plan(wf, constraints, solver="greedy")
+
+        from app.executor.runner import start_run, get_run
+        run_id = await start_run(plan_result.plan_id, "virtual")
+
+        for _ in range(50):
+            await asyncio.sleep(0.1)
+            summary = get_run(run_id)
+            if summary and summary.status != "running":
+                break
+
+        started = [e for e in captured if e.event_type == "step_started" and e.step_id == "A"]
+        reasoning = [e for e in captured if e.event_type == "step_reasoning" and e.step_id == "A"]
+
+        assert started, "no step_started event captured"
+        assert started[0].data.get("rationale"), "step_started must carry the plan-time rationale live, not just after completion"
+
+        assert reasoning, "no step_reasoning event captured — accept/escalate decision must stream live"
+        assert isinstance(reasoning[0].data.get("text"), str) and reasoning[0].data["text"]
+        assert "escalating" in reasoning[0].data
+
+    @pytest.mark.asyncio
     async def test_run_api_endpoint(self):
         """Test POST /api/runs via TestClient."""
         from fastapi.testclient import TestClient

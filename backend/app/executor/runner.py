@@ -274,11 +274,22 @@ async def _run_step(
     verifier_kind = (step.verifier or "llm_judge") if step else "llm_judge"
     output_schema = step.output_schema if step else None
 
+    from app.scheduler.explain import explain_option_search
+
     emit(RunEvent(
         run_id=run_id,
         event_type="step_started",
         step_id=step_id,
-        data={"model": opt.model, "site": opt.site, "mode": opt.mode},
+        data={
+            "model": opt.model,
+            "site": opt.site,
+            "mode": opt.mode,
+            "rationale": sp.rationale,
+            "search_note": explain_option_search(step, opt) if step else None,
+            "is_critical": sp.is_critical,
+            "slack_s": sp.slack_s,
+            "ci_g_per_kwh": sp.ci_g_per_kwh,
+        },
     ))
 
     start_s = int(clock.now())
@@ -333,6 +344,26 @@ async def _run_step(
             escalate_target = opt.escalate_model
         elif opt.model != "large":
             escalate_target = "large"
+
+    # Stream the accept/escalate reasoning live, the moment the decision is
+    # made -- before the (possibly slow) escalation call, not only after the
+    # step finishes -- so the Run page can show *why* in real time.
+    from app.scheduler.explain import explain_verification
+    if step:
+        emit(RunEvent(
+            run_id=run_id,
+            event_type="step_reasoning",
+            step_id=step_id,
+            data={
+                "text": explain_verification(
+                    step, opt, verifier_score, required_quality, tau,
+                    will_escalate=bool(escalate_target), escalate_target=escalate_target,
+                ),
+                "escalating": bool(escalate_target),
+                "verifier_score": verifier_score,
+                "required_quality": required_quality,
+            },
+        ))
 
     if escalate_target:
         escalated = True

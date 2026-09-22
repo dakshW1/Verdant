@@ -11,6 +11,8 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@emailjs/browser": "^4.4.1",
+    "@supabase/supabase-js": "^2.116.0",
     "@tailwindcss/vite": "^4.3.3",
     "@xyflow/react": "^12.11.6",
     "clsx": "^2.1.1",

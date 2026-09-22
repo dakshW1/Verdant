@@ -20,6 +20,7 @@ interface StepState {
   error?: string
   startedAt?: number
   endedAt?: number
+  reasoning?: { text: string; escalating?: boolean }[]
 }
 
 interface RunPageProps {
@@ -96,6 +97,24 @@ function StepCard({ step }: { step: StepState }) {
       {step.status === 'running' && (
         <div className="w-full h-1.5 bg-[#0a1a10] rounded-full overflow-hidden my-2">
           <div className="h-full bg-emerald-400 rounded-full animate-pulse" style={{ width: '85%' }} />
+        </div>
+      )}
+
+      {step.reasoning && step.reasoning.length > 0 && (
+        <div className="mt-2 mb-1 space-y-1">
+          <div className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">Why this model?</div>
+          {step.reasoning.map((r, i) => (
+            <div
+              key={i}
+              className={`text-xs leading-relaxed rounded-lg px-2.5 py-1.5 border ${
+                r.escalating
+                  ? 'text-amber-200 bg-amber-950/30 border-amber-900/40'
+                  : 'text-slate-400 bg-[#020b05] border-emerald-900/20'
+              }`}
+            >
+              {r.text}
+            </div>
+          ))}
         </div>
       )}
 
@@ -311,10 +330,27 @@ export function RunPage({ planId, onReceipt, onSelectPlan }: RunPageProps) {
             setSteps(prev => {
               const m = new Map(prev)
               const existing = m.get(data.step_id!) ?? { step_id: data.step_id!, status: 'waiting' as const }
+              const initialReasoning: { text: string; escalating?: boolean }[] = []
+              if (typeof data.rationale === 'string' && data.rationale) initialReasoning.push({ text: data.rationale })
+              if (typeof data.search_note === 'string' && data.search_note) initialReasoning.push({ text: data.search_note })
               m.set(data.step_id!, {
                 ...existing,
                 status: 'running',
                 startedAt: Date.now(),
+                reasoning: initialReasoning,
+              })
+              return m
+            })
+          }
+
+          if (data.event_type === 'step_reasoning') {
+            setSteps(prev => {
+              const m = new Map(prev)
+              const existing = m.get(data.step_id!) ?? { step_id: data.step_id!, status: 'running' as const }
+              const text = typeof data.text === 'string' ? data.text : ''
+              m.set(data.step_id!, {
+                ...existing,
+                reasoning: [...(existing.reasoning ?? []), { text, escalating: Boolean(data.escalating) }],
               })
               return m
             })

@@ -69,6 +69,51 @@ def explain_step(
     return " ".join(parts)
 
 
+def explain_option_search(step: Step, option: ConfigOption) -> str:
+    """
+    One-line, cheap, template-based summary of the search space this step's
+    choice came from -- "which models/sites were considered" -- without an
+    extra LLM call. Uses the registry directly rather than re-running the
+    planner's option builder, so this stays free to call from the executor's
+    hot path.
+    """
+    from app.config import get_models_registry, get_sites_registry
+
+    n_models = len(get_models_registry().get("models", []))
+    n_sites = len(get_sites_registry().get("sites", []))
+    return (
+        f"Considered up to {n_models} model tiers across {n_sites} sites "
+        f"(pruned to the non-dominated options) and picked {option.model} @ {option.site}."
+    )
+
+
+def explain_verification(
+    step: Step,
+    option: ConfigOption,
+    verifier_score: float,
+    required_quality: float,
+    tau: float,
+    will_escalate: bool,
+    escalate_target: str | None,
+) -> str:
+    """
+    Live, template-based explanation of the accept/escalate decision, emitted
+    the moment the decision is made (not only after the fact) so the Run page
+    can show *why* a step is about to retry with a stronger model.
+    """
+    pct = lambda x: f"{x * 100:.0f}%"  # noqa: E731
+    if not will_escalate:
+        return (
+            f"✅ Verifier scored {pct(verifier_score)}, meeting the "
+            f"{pct(required_quality)} bar for this step (floor {pct(step.min_quality)}, "
+            f"acceptance threshold {pct(tau)}) — output accepted as-is."
+        )
+    return (
+        f"⚠️ Verifier scored {pct(verifier_score)}, below the {pct(required_quality)} "
+        f"required for this step — escalating to {escalate_target} for a second attempt."
+    )
+
+
 def _ci_label(ci: float) -> str:
     if ci < 150:
         return "very low 🌿"

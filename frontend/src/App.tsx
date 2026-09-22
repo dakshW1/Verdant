@@ -6,10 +6,12 @@ import { PlanPage } from './pages/Plan'
 import { RunPage } from './pages/Run'
 import { ReceiptPage } from './pages/Receipt'
 import { ReportPage } from './pages/Report'
+import { useAuth } from './auth/AuthGate'
 
 export type Page = 'home' | 'builder' | 'plan' | 'run' | 'receipt' | 'report'
 
 export default function App() {
+  const { session, signOut } = useAuth()
   const [page, setPage] = useState<Page>('home')
   const [currentPlanId, setCurrentPlanId] = useState<string | null>('fixture-market-brief-001')
   const [currentRunId, setCurrentRunId] = useState<string | null>(null)
@@ -84,11 +86,22 @@ export default function App() {
             ))}
           </div>
 
-          <div className="hidden lg:flex items-center gap-4 text-xs text-slate-500">
-            <span className="flex items-center gap-1.5 bg-[#041208] border border-emerald-900/40 px-2.5 py-1 rounded-full">
+          <div className="flex items-center gap-3 text-xs text-slate-500">
+            <span className="hidden lg:flex items-center gap-1.5 bg-[#041208] border border-emerald-900/40 px-2.5 py-1 rounded-full">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
               Gemini 2.5 + Synthetic CI Active
             </span>
+            {session?.email && (
+              <span className="hidden sm:inline text-slate-400 max-w-[160px] truncate" title={session.email}>
+                {session.email}
+              </span>
+            )}
+            <button
+              onClick={signOut}
+              className="text-slate-500 hover:text-red-300 border border-slate-800 hover:border-red-900/60 rounded-lg px-2.5 py-1 transition-colors"
+            >
+              Sign out
+            </button>
           </div>
         </div>
       </nav>
