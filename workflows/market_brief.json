@@ -13,7 +13,7 @@
       "prompt_template": "Break down a market brief on {{input.topic}} into 3 focused research questions. Return a JSON list of strings.",
       "depends_on": [],
       "min_quality": 0.0,
-      "max_tokens_out": 400,
+      "max_tokens_out": 1200,
       "cascade_allowed": true,
       "verifier": "llm_judge"
     },
@@ -25,7 +25,7 @@
       "prompt_template": "From the corpus below answer question 1 from {{upstream.plan}}.\n\n<corpus>{{corpus.market}}</corpus>",
       "depends_on": ["plan"],
       "min_quality": 0.0,
-      "max_tokens_out": 500,
+      "max_tokens_out": 900,
       "cascade_allowed": true,
       "verifier": "llm_judge"
     },
@@ -37,7 +37,7 @@
       "prompt_template": "From the corpus below answer question 2 from {{upstream.plan}}.\n\n<corpus>{{corpus.competitors}}</corpus>",
       "depends_on": ["plan"],
       "min_quality": 0.0,
-      "max_tokens_out": 500,
+      "max_tokens_out": 900,
       "cascade_allowed": true,
       "verifier": "llm_judge"
     },
@@ -49,7 +49,7 @@
       "prompt_template": "From the corpus below answer question 3 from {{upstream.plan}}.\n\n<corpus>{{corpus.policy}}</corpus>",
       "depends_on": ["plan"],
       "min_quality": 0.0,
-      "max_tokens_out": 500,
+      "max_tokens_out": 900,
       "cascade_allowed": true,
       "verifier": "llm_judge"
     },
@@ -61,7 +61,7 @@
       "prompt_template": "Summarize the following market size information in 3 sentences:\n\n{{upstream.r1}}",
       "depends_on": ["r1"],
       "min_quality": 0.0,
-      "max_tokens_out": 300,
+      "max_tokens_out": 700,
       "cascade_allowed": true,
       "verifier": "llm_judge"
     },
@@ -73,7 +73,7 @@
       "prompt_template": "Summarize the following competitor information in 3 sentences:\n\n{{upstream.r2}}",
       "depends_on": ["r2"],
       "min_quality": 0.0,
-      "max_tokens_out": 300,
+      "max_tokens_out": 700,
       "cascade_allowed": true,
       "verifier": "llm_judge"
     },
@@ -85,7 +85,7 @@
       "prompt_template": "Summarize the following policy information in 3 sentences:\n\n{{upstream.r3}}",
       "depends_on": ["r3"],
       "min_quality": 0.0,
-      "max_tokens_out": 300,
+      "max_tokens_out": 700,
       "cascade_allowed": true,
       "verifier": "llm_judge"
     },
@@ -97,7 +97,7 @@
       "min_quality": 0.85,
       "prompt_template": "Using the following summaries, write 5 non-obvious strategic insights with supporting evidence:\n\nMarket: {{upstream.s1}}\n\nCompetitors: {{upstream.s2}}\n\nPolicy: {{upstream.s3}}",
       "depends_on": ["s1", "s2", "s3"],
-      "max_tokens_out": 800,
+      "max_tokens_out": 1200,
       "cascade_allowed": true,
       "verifier": "llm_judge"
     },
@@ -108,7 +108,7 @@
       "omega": 0.10,
       "prompt_template": "Check each insight in the following text against the summaries provided. Flag any unsupported claims.\n\nInsights: {{upstream.syn}}\n\nMarket: {{upstream.s1}}\nCompetitors: {{upstream.s2}}\nPolicy: {{upstream.s3}}",
       "depends_on": ["syn"],
-      "max_tokens_out": 400,
+      "max_tokens_out": 1200,
       "cascade_allowed": false,
       "verifier": "llm_judge"
     },
@@ -119,7 +119,7 @@
       "omega": 0.10,
       "prompt_template": "Format the following insights and fact-check results as a polished 1-page market brief in markdown.\n\nInsights: {{upstream.syn}}\n\nFact-check: {{upstream.chk}}",
       "depends_on": ["chk"],
-      "max_tokens_out": 800,
+      "max_tokens_out": 1200,
       "cascade_allowed": true,
       "verifier": "llm_judge"
     }

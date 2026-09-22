@@ -13,7 +13,7 @@
       "omega": 0.10,
       "prompt_template": "Plan a nightly market report on {{input.topic}} for {{input.report_date}}. Return JSON list of 3 sections.",
       "depends_on": [],
-      "max_tokens_out": 400,
+      "max_tokens_out": 800,
       "cascade_allowed": true,
       "verifier": "llm_judge"
     },
@@ -24,7 +24,7 @@
       "omega": 0.15,
       "prompt_template": "Extract key news items about {{input.topic}} from the corpus relevant to: {{upstream.plan}}\n\n<corpus>{{corpus.market}}</corpus>",
       "depends_on": ["plan"],
-      "max_tokens_out": 600,
+      "max_tokens_out": 1000,
       "cascade_allowed": true,
       "verifier": "llm_judge"
     },
@@ -35,7 +35,7 @@
       "omega": 0.15,
       "prompt_template": "Extract financial metrics about {{input.topic}} from the corpus:\n\n<corpus>{{corpus.competitors}}</corpus>",
       "depends_on": ["plan"],
-      "max_tokens_out": 600,
+      "max_tokens_out": 1000,
       "cascade_allowed": true,
       "verifier": "llm_judge"
     },
@@ -58,7 +58,7 @@
       "omega": 0.10,
       "prompt_template": "Verify the following analysis against the source data. Flag unsubstantiated claims.\n\nAnalysis: {{upstream.analyze}}\n\nNews: {{upstream.r1}}\nFinancials: {{upstream.r2}}",
       "depends_on": ["analyze"],
-      "max_tokens_out": 400,
+      "max_tokens_out": 800,
       "cascade_allowed": false,
       "verifier": "llm_judge"
     },

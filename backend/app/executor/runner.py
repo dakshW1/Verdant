@@ -273,6 +273,13 @@ async def _run_step(
     step_type = step.step_type if step else "summarization"
     verifier_kind = (step.verifier or "llm_judge") if step else "llm_judge"
     output_schema = step.output_schema if step else None
+    # `opt.tokens_out` is a PLANNING-TIME estimate (step-type prior capped by
+    # the user's ceiling, whichever is smaller — see profiles/latency.py)
+    # used to predict cost/latency before running. Using it as the real
+    # generation limit silently cut answers short at the (often tiny) prior
+    # regardless of what the user actually configured. The real call must
+    # use the user's real ceiling.
+    real_max_tokens = step.max_tokens_out if step else opt.tokens_out
 
     from app.scheduler.explain import explain_option_search
 
@@ -307,7 +314,7 @@ async def _run_step(
     llm_resp = await client.generate(
         prompt=prompt,
         model_api_id=api_id,
-        max_tokens=opt.tokens_out,
+        max_tokens=real_max_tokens,
     )
 
     # Simulate duration in virtual mode
@@ -378,7 +385,7 @@ async def _run_step(
         escalated_resp = await escalate_client.generate(
             prompt=prompt,
             model_api_id=escalate_api_id,
-            max_tokens=opt.tokens_out,
+            max_tokens=real_max_tokens,
         )
         await clock.sleep(opt.dur_expected_s // 2)  # extra time for escalation
         final_text = escalated_resp.text

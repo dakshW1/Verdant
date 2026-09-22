@@ -13,7 +13,7 @@
       "omega": 0.10,
       "prompt_template": "Parse this code diff and identify the files changed, added functions, and modification types. Return JSON.\n\nPR: {{input.pr_title}}\n\nDiff:\n{{input.diff}}",
       "depends_on": [],
-      "max_tokens_out": 400,
+      "max_tokens_out": 800,
       "cascade_allowed": false,
       "verifier": "schema",
       "output_schema": {
@@ -33,7 +33,7 @@
       "min_quality": 0.80,
       "prompt_template": "Review the following code change for security issues (injection, auth, secrets, rate limits, input validation). Be specific.\n\nContext: {{upstream.parse}}\n\nDiff:\n{{input.diff}}",
       "depends_on": ["parse"],
-      "max_tokens_out": 600,
+      "max_tokens_out": 1000,
       "cascade_allowed": true,
       "verifier": "llm_judge"
     },
@@ -44,7 +44,7 @@
       "omega": 0.30,
       "prompt_template": "Review the following code change for logic errors, edge cases, and correctness. Reference the parsed structure.\n\nContext: {{upstream.parse}}\n\nDiff:\n{{input.diff}}",
       "depends_on": ["parse"],
-      "max_tokens_out": 600,
+      "max_tokens_out": 1000,
       "cascade_allowed": true,
       "verifier": "llm_judge"
     },
@@ -55,7 +55,7 @@
       "omega": 0.10,
       "prompt_template": "Review the following code change for style, naming conventions, and documentation. Be concise.\n\nDiff:\n{{input.diff}}",
       "depends_on": ["parse"],
-      "max_tokens_out": 400,
+      "max_tokens_out": 800,
       "cascade_allowed": true,
       "verifier": "llm_judge"
     },
@@ -77,7 +77,7 @@
       "omega": 0.10,
       "prompt_template": "Format the following review as a structured report with CRITICAL / MAJOR / MINOR / SUGGESTION severity labels:\n\n{{upstream.merge}}",
       "depends_on": ["merge"],
-      "max_tokens_out": 600,
+      "max_tokens_out": 1000,
       "cascade_allowed": true,
       "verifier": "llm_judge"
     }

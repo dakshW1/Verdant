@@ -92,9 +92,9 @@ const PRESETS = [
         'in a recent industry survey of 2,000 prospective buyers.',
     },
     steps: [
-      { id: 'summarize', name: 'Summarize news', step_type: 'summarization', prompt_template: 'Summarize the following news articles into key points:\n\n{{input.articles}}', depends_on: [], min_quality: 0.80, omega: 1.0, max_tokens: 400 },
-      { id: 'extract',   name: 'Extract signals', step_type: 'extraction',   prompt_template: 'Extract market signals from:\n\n{{summarize.output}}', depends_on: ['summarize'], min_quality: 0.85, omega: 1.2, max_tokens: 300 },
-      { id: 'brief',     name: 'Write brief',     step_type: 'formatting',   prompt_template: 'Write a market brief using signals:\n\n{{extract.output}}', depends_on: ['extract'],   min_quality: 0.80, omega: 1.0, max_tokens: 600 },
+      { id: 'summarize', name: 'Summarize news', step_type: 'summarization', prompt_template: 'Summarize the following news articles into key points:\n\n{{input.articles}}', depends_on: [], min_quality: 0.80, omega: 1.0, max_tokens: 800 },
+      { id: 'extract',   name: 'Extract signals', step_type: 'extraction',   prompt_template: 'Extract market signals from:\n\n{{summarize.output}}', depends_on: ['summarize'], min_quality: 0.85, omega: 1.2, max_tokens: 800 },
+      { id: 'brief',     name: 'Write brief',     step_type: 'formatting',   prompt_template: 'Write a market brief using signals:\n\n{{extract.output}}', depends_on: ['extract'],   min_quality: 0.80, omega: 1.0, max_tokens: 1400 },
     ] as DraftStep[],
   },
   {
@@ -114,9 +114,9 @@ const PRESETS = [
         '    return total\n',
     },
     steps: [
-      { id: 'analyze', name: 'Analyze code',    step_type: 'code',      prompt_template: 'Analyze this code for bugs and issues:\n\n{{input.code}}', depends_on: [], min_quality: 0.85, omega: 1.5, max_tokens: 500 },
-      { id: 'reason',  name: 'Reason about fixes', step_type: 'reasoning', prompt_template: 'Suggest fixes for the issues:\n\n{{analyze.output}}', depends_on: ['analyze'], min_quality: 0.85, omega: 1.5, max_tokens: 400 },
-      { id: 'report',  name: 'Format report',   step_type: 'formatting', prompt_template: 'Format a code review report:\n\n{{reason.output}}', depends_on: ['reason'], min_quality: 0.80, omega: 1.0, max_tokens: 600 },
+      { id: 'analyze', name: 'Analyze code',    step_type: 'code',      prompt_template: 'Analyze this code for bugs and issues:\n\n{{input.code}}', depends_on: [], min_quality: 0.85, omega: 1.5, max_tokens: 900 },
+      { id: 'reason',  name: 'Reason about fixes', step_type: 'reasoning', prompt_template: 'Suggest fixes for the issues:\n\n{{analyze.output}}', depends_on: ['analyze'], min_quality: 0.85, omega: 1.5, max_tokens: 900 },
+      { id: 'report',  name: 'Format report',   step_type: 'formatting', prompt_template: 'Format a code review report:\n\n{{reason.output}}', depends_on: ['reason'], min_quality: 0.80, omega: 1.0, max_tokens: 1200 },
     ] as DraftStep[],
   },
   {
@@ -133,9 +133,9 @@ const PRESETS = [
       question: 'What did the RBI decide about interest rates, and what risks did it flag?',
     },
     steps: [
-      { id: 'extract', name: 'Extract facts',   step_type: 'extraction', prompt_template: 'Extract key facts from:\n\n{{input.document}}', depends_on: [], min_quality: 0.80, omega: 1.0, max_tokens: 400 },
-      { id: 'reason',  name: 'Reason answers',  step_type: 'reasoning',  prompt_template: 'Answer the question using facts:\n\n{{extract.output}}\n\nQuestion: {{input.question}}', depends_on: ['extract'], min_quality: 0.90, omega: 2.0, max_tokens: 500 },
-      { id: 'format',  name: 'Format answer',   step_type: 'formatting', prompt_template: 'Format the answer clearly:\n\n{{reason.output}}', depends_on: ['reason'], min_quality: 0.80, omega: 1.0, max_tokens: 300 },
+      { id: 'extract', name: 'Extract facts',   step_type: 'extraction', prompt_template: 'Extract key facts from:\n\n{{input.document}}', depends_on: [], min_quality: 0.80, omega: 1.0, max_tokens: 800 },
+      { id: 'reason',  name: 'Reason answers',  step_type: 'reasoning',  prompt_template: 'Answer the question using facts:\n\n{{extract.output}}\n\nQuestion: {{input.question}}', depends_on: ['extract'], min_quality: 0.90, omega: 2.0, max_tokens: 900 },
+      { id: 'format',  name: 'Format answer',   step_type: 'formatting', prompt_template: 'Format the answer clearly:\n\n{{reason.output}}', depends_on: ['reason'], min_quality: 0.80, omega: 1.0, max_tokens: 800 },
     ] as DraftStep[],
   },
 ]
@@ -149,7 +149,7 @@ function newStep(idx: number): DraftStep {
     depends_on: [],
     min_quality: 0.80,
     omega: 1.0,
-    max_tokens: 400,
+    max_tokens: 800,
   }
 }
 
