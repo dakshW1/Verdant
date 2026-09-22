@@ -304,7 +304,7 @@ async def _run_step(
 
     # Verify output
     tau = get_verifier_tau()
-    verifier_score = await verify_output(
+    verifier_score, verifier_note = await verify_output(
         output_text=llm_resp.text,
         verifier=verifier_kind,
         step_type=step_type,
@@ -354,7 +354,7 @@ async def _run_step(
         model_used = escalate_target
         model_api_id_used = escalated_resp.model_used or escalate_api_id
 
-        verifier_score = await verify_output(
+        verifier_score, verifier_note = await verify_output(
             output_text=final_text,
             verifier=verifier_kind,
             step_type=step_type,
@@ -390,6 +390,7 @@ async def _run_step(
         carbon_g=carbon_g,
         cost_usd=cost_usd,
         verifier_score=verifier_score,
+        verifier_note=verifier_note,
         accepted=verifier_score >= tau,
         escalated=escalated,
         output_text=final_text,
@@ -409,6 +410,7 @@ async def _run_step(
         verifier_score=verifier_score,
         output_text=final_text,
         model_used=model_api_id_used,
+        verifier_note=verifier_note,
     )
 
 
@@ -488,7 +490,7 @@ def _save_telemetry(
     tokens_in: int, tokens_out: int, dur_s: float, energy_wh: float,
     carbon_g: float, cost_usd: float, verifier_score: float | None,
     accepted: bool | None, escalated: bool, output_text: str | None = None,
-    model_used: str | None = None,
+    model_used: str | None = None, verifier_note: str | None = None,
 ) -> None:
     try:
         from app.db import StepRunRecord, get_session
@@ -497,7 +499,8 @@ def _save_telemetry(
                 run_id=run_id, step_id=step_id, step_type=step_type,
                 model=model, model_used=model_used, site=site, tokens_in=tokens_in, tokens_out=tokens_out,
                 dur_s=dur_s, energy_wh=energy_wh, carbon_g=carbon_g, cost_usd=cost_usd,
-                verifier_score=verifier_score, accepted=accepted, escalated=escalated,
+                verifier_score=verifier_score, verifier_note=verifier_note,
+                accepted=accepted, escalated=escalated,
                 output_text=output_text,
             )
             session.add(record)

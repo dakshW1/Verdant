@@ -333,6 +333,7 @@ async def get_run(run_id: str) -> dict:
                 "carbon_g": s.carbon_g,
                 "cost_usd": s.cost_usd,
                 "verifier_score": s.verifier_score,
+                "verifier_note": s.verifier_note,
                 "escalated": s.escalated,
             }
             for s in step_records

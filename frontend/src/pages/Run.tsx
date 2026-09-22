@@ -4,6 +4,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { api } from '../api/client'
 import type { StepRunResult, Totals } from '../api/types'
+import { formatQualityPercent } from '../utils/format'
 
 interface RunEvent {
   run_id: string
@@ -116,10 +117,21 @@ function StepCard({ step }: { step: StepState }) {
             <span className="text-slate-500 block" title="An AI judge grades this step's real answer for accuracy and completeness — separate from the planning-time quality estimate">
               Answer Quality Check
             </span>
-            <span className={`font-semibold ${(step.result.verifier_score ?? 0) >= 0.7 ? 'text-emerald-400' : 'text-amber-400'}`}>
-              {((step.result.verifier_score ?? 0) * 100).toFixed(0)}% <span className="text-slate-500 font-normal">(passing: 70%+)</span>
-            </span>
+            {step.result.verifier_score === undefined || step.result.verifier_score === null ? (
+              <span className="font-semibold text-slate-500">Not verified</span>
+            ) : (
+              <span className={`font-semibold ${step.result.verifier_score >= 0.7 ? 'text-emerald-400' : 'text-amber-400'}`}>
+                {formatQualityPercent(step.result.verifier_score)} <span className="text-slate-500 font-normal">(passing: 70%+)</span>
+              </span>
+            )}
           </div>
+        </div>
+      )}
+
+      {step.result?.verifier_note && (
+        <div className="mt-2 text-[11px] text-amber-300/90 bg-amber-950/30 border border-amber-900/40 rounded-lg px-2.5 py-1.5 flex items-start gap-1.5">
+          <span>⚠️</span>
+          <span>{step.result.verifier_note}</span>
         </div>
       )}
 

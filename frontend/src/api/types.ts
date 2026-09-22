@@ -128,6 +128,7 @@ export interface StepRunResult {
   verifier_score?: number
   output_text: string
   model_used?: string
+  verifier_note?: string | null
 }
 
 export interface RunSummary {

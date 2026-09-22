@@ -162,6 +162,7 @@ class StepRunResult(BaseModel):
     verifier_score: Optional[float]
     output_text: str
     model_used: str = ""  # exact real API model id that produced the final output (e.g. "gemini-3.5-flash-lite")
+    verifier_note: Optional[str] = None  # set when the judge's response couldn't be parsed cleanly
 
 
 class RunSummary(BaseModel):

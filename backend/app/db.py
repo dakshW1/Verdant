@@ -71,6 +71,7 @@ class StepRunRecord(SQLModel, table=True):
     carbon_g: float
     cost_usd: float
     verifier_score: Optional[float] = None
+    verifier_note: Optional[str] = None  # set when the judge fell back to a heuristic score
     accepted: Optional[bool] = None
     escalated: bool = False
     teacher_agree: Optional[bool] = None  # used by learning predictor
@@ -123,6 +124,7 @@ def _migrate_and_seed() -> None:
             "ALTER TABLE runs ADD COLUMN final_output TEXT",
             "ALTER TABLE step_runs ADD COLUMN output_text TEXT",
             "ALTER TABLE step_runs ADD COLUMN model_used TEXT",
+            "ALTER TABLE step_runs ADD COLUMN verifier_note TEXT",
         ]:
             try:
                 conn.execute(text(stmt))

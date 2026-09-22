@@ -161,8 +161,135 @@ class TestVerifier:
     @pytest.mark.asyncio
     async def test_verify_none_returns_one(self):
         from app.executor.verifier import verify_output
-        score = await verify_output("any text", "none", "summarization", "prompt", None)
+        score, note = await verify_output("any text", "none", "summarization", "prompt", None)
         assert score == 1.0
+        assert note is None
+
+
+# ─── Judge score parsing (Bug 2 regression) ────────────────────────────────────
+# Real judge models routinely ignore a "respond with ONLY a number" instruction.
+# Each of these must extract the intended score correctly, or (for genuinely
+# unparseable input) return None -- never a silently fabricated low number.
+
+class TestJudgeScoreParsing:
+    def test_plain_float(self):
+        from app.executor.verifier import parse_judge_score
+        assert parse_judge_score("0.85") == pytest.approx(0.85)
+
+    def test_plain_float_with_trailing_newline(self):
+        from app.executor.verifier import parse_judge_score
+        assert parse_judge_score("0.85\n") == pytest.approx(0.85)
+
+    def test_plain_float_with_trailing_period(self):
+        """Previously crashed float('0.85.') and silently returned a fabricated 0.75."""
+        from app.executor.verifier import parse_judge_score
+        assert parse_judge_score("0.85.") == pytest.approx(0.85)
+
+    def test_labeled_score(self):
+        from app.executor.verifier import parse_judge_score
+        assert parse_judge_score("Score: 0.85") == pytest.approx(0.85)
+
+    def test_prose_with_score(self):
+        from app.executor.verifier import parse_judge_score
+        assert parse_judge_score("The score is 0.85 out of 1.0.") == pytest.approx(0.85)
+
+    def test_clean_json(self):
+        from app.executor.verifier import parse_judge_score
+        assert parse_judge_score('{"score": 0.85, "reason": "solid answer"}') == pytest.approx(0.85)
+
+    def test_json_in_markdown_fence(self):
+        from app.executor.verifier import parse_judge_score
+        assert parse_judge_score('```json\n{"score": 0.85}\n```') == pytest.approx(0.85)
+
+    def test_json_alternate_key_names(self):
+        from app.executor.verifier import parse_judge_score
+        assert parse_judge_score('{"quality": 0.9}') == pytest.approx(0.9)
+        assert parse_judge_score('{"rating": 0.4}') == pytest.approx(0.4)
+
+    def test_trailing_prose_after_number(self):
+        from app.executor.verifier import parse_judge_score
+        assert parse_judge_score("0.85 - the answer is accurate and complete") == pytest.approx(0.85)
+
+    def test_malformed_json_returns_none_not_a_guess(self):
+        from app.executor.verifier import parse_judge_score
+        # Truncated/invalid JSON with no recoverable number.
+        assert parse_judge_score('{"score": ') is None
+
+    def test_empty_string_returns_none(self):
+        from app.executor.verifier import parse_judge_score
+        assert parse_judge_score("") is None
+        assert parse_judge_score("   ") is None
+
+    def test_non_numeric_text_returns_none(self):
+        from app.executor.verifier import parse_judge_score
+        assert parse_judge_score("N/A") is None
+        assert parse_judge_score("I cannot evaluate this.") is None
+
+    def test_out_of_range_values_are_clamped(self):
+        from app.executor.verifier import parse_judge_score
+        assert parse_judge_score("1.5") == pytest.approx(1.0)
+        assert parse_judge_score("-0.2") is None or parse_judge_score("-0.2") == pytest.approx(0.0)
+
+    @pytest.mark.asyncio
+    async def test_llm_judge_surfaces_note_on_parse_failure(self, monkeypatch):
+        """
+        When the judge model's response can't be parsed, verify_output must
+        return a note explaining the fallback -- never present a fabricated
+        score as if it were a real measurement with no caveat.
+        """
+        from app.executor import verifier as verifier_module
+
+        class _GarbageJudgeClient:
+            async def generate(self, prompt, model_api_id, max_tokens=800, system=""):
+                from app.executor.llm_clients import LLMResponse
+                return LLMResponse(text="I refuse to answer that.", tokens_in=10, tokens_out=5, latency_s=0.01, model_used="mock")
+
+        # _verify_llm_judge imports get_client_for_model locally from
+        # app.executor.llm_clients at call time, so patch it at the source.
+        monkeypatch.setattr("app.executor.llm_clients.get_client_for_model", lambda model_id: _GarbageJudgeClient())
+
+        score, note = await verifier_module.verify_output(
+            output_text="a genuinely good, complete answer",
+            verifier="llm_judge",
+            step_type="summarization",
+            prompt="summarize this",
+            output_schema=None,
+        )
+        assert note is not None, "A parse failure must surface a note, not silently pass as a real score"
+        assert 0.0 <= score <= 1.0
+
+    @pytest.mark.asyncio
+    async def test_llm_judge_no_note_on_clean_parse(self, monkeypatch):
+        from app.executor import verifier as verifier_module
+
+        class _CleanJudgeClient:
+            async def generate(self, prompt, model_api_id, max_tokens=800, system=""):
+                from app.executor.llm_clients import LLMResponse
+                return LLMResponse(text="0.9", tokens_in=10, tokens_out=2, latency_s=0.01, model_used="mock")
+
+        monkeypatch.setattr("app.executor.llm_clients.get_client_for_model", lambda model_id: _CleanJudgeClient())
+
+        score, note = await verifier_module.verify_output(
+            output_text="a genuinely good, complete answer",
+            verifier="llm_judge",
+            step_type="summarization",
+            prompt="summarize this",
+            output_schema=None,
+        )
+        assert score == pytest.approx(0.9)
+        assert note is None
+
+    def test_long_good_answer_is_not_truncated_mid_sentence_below_judge_limit(self):
+        """
+        A ~2000-char answer must fit within the judge's excerpt budget so a
+        complete, good answer isn't shown to the judge as if cut off.
+        """
+        from app.executor.verifier import _JUDGE_OUTPUT_CHARS
+        long_answer = "This is a complete sentence. " * 70  # ~2100 chars
+        assert len(long_answer) <= _JUDGE_OUTPUT_CHARS, (
+            "Judge excerpt budget is smaller than a realistic full-length answer; "
+            "good long answers will look truncated/incomplete to the judge."
+        )
 
 
 # ─── VoI Decision ─────────────────────────────────────────────────────────────
